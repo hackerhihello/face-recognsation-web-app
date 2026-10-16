@@ -1,18 +1,83 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens for the Face Attendance SaaS app.
+ * Light surfaces, navy navigation, blue primary. Exposed as Tailwind
+ * utilities (bg-surface, text-ink-muted, bg-primary, border-line, ...).
+ */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --color-surface: #ffffff;
+  --color-surface-muted: #f5f7fa;
+  --color-surface-sunken: #eef1f5;
+  --color-line: #e3e8ef;
+  --color-line-strong: #cdd5df;
+
+  --color-ink: #0f1b2d;
+  --color-ink-secondary: #44516a;
+  --color-ink-muted: #66728a;
+
+  --color-nav: #0b1b33;
+  --color-nav-hover: #13284a;
+  --color-nav-active: #1c3763;
+  --color-nav-ink: #c6d1e3;
+  --color-nav-ink-muted: #8494b0;
+
+  --color-primary: #1f63e0;
+  --color-primary-hover: #1953c0;
+  --color-primary-soft: #e8f0fe;
+  --color-primary-ink: #1546a6;
+
+  --color-success: #0b7a3e;
+  --color-success-soft: #e6f5ec;
+  --color-warning: #8a5a00;
+  --color-warning-soft: #fdf3dc;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+  --color-info: #175cd3;
+  --color-info-soft: #e8f0fe;
+  --color-neutral-soft: #eef1f5;
+
+  /* Chart status marks (fixed status palette; always paired with labels). */
+  --color-chart-present: #0ca30c;
+  --color-chart-late: #fab219;
+  --color-chart-absent: #d03b3b;
+  --color-chart-primary: #2a78d6;
+
+  --radius-card: 0.75rem;
+  --shadow-card: 0 1px 2px rgb(15 27 45 / 0.05), 0 1px 3px rgb(15 27 45 / 0.04);
+  --shadow-pop: 0 10px 30px -8px rgb(15 27 45 / 0.25);
+}
+
 @layer base {
   :root {
-    --background: 220 33% 98%;
-    --foreground: 222 47% 11%;
+    color-scheme: light;
   }
 
-  .dark {
-    --background: 222 47% 4%;
-    --foreground: 210 40% 98%;
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-surface-sunken) 0%, #f7f9fb 50%, var(--color-surface-sunken) 100%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 0.375rem;
 }

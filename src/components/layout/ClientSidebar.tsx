@@ -39,7 +39,7 @@ interface SidebarModule {
 
 export const CLIENT_MODULES: SidebarModule[] = [
   // Core Pulse
-  { name: "Dashboard Overview", href: "/", icon: LayoutDashboard, section: "Core Operations" },
+  { name: "Dashboard Overview", href: "/legacy-overview", icon: LayoutDashboard, section: "Core Operations" },
   { name: "Live Attendance", href: "/live-attendance", icon: Radio, section: "Core Operations", badge: "Live", badgeColor: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" },
 
   // Workforce Management
