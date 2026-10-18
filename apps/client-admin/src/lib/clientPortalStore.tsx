@@ -78,7 +78,9 @@ interface ClientPortalContextType {
 
   // Users & Roles
   users: ClientUser[];
+  allUsers: ClientUser[];
   addUser: (name: string, email: string, role: ClientAdminRole, departmentId?: string) => void;
+  updateUserStatus: (userId: string, status: "ACTIVE" | "INACTIVE") => void;
 
   // Notifications
   notifications: ClientNotification[];
@@ -446,6 +448,12 @@ export function ClientPortalProvider({ children }: { children: React.ReactNode }
     showToast(`User ${name} added with ${role} permissions.`);
   };
 
+  const updateUserStatus = (userId: string, status: "ACTIVE" | "INACTIVE") => {
+    setAllUsers((prev) =>
+      prev.map((u) => (u.userId === userId ? { ...u, status } : u))
+    );
+  };
+
   const markNotificationRead = (id: string) => {
     setAllNotifications((prev) =>
       prev.map((n) => (n.notificationId === id ? { ...n, isRead: true } : n))
@@ -533,7 +541,9 @@ export function ClientPortalProvider({ children }: { children: React.ReactNode }
         locations,
         addLocation,
         users,
+        allUsers,
         addUser,
+        updateUserStatus,
         notifications,
         markNotificationRead,
         auditLogs,

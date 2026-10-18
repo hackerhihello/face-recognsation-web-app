@@ -58,6 +58,7 @@ export const CLIENT_MODULES: SidebarModule[] = [
   { name: "API Usage & Requests", href: "/api-usage", icon: Coins, section: "Compliance & Insights" },
 
   // Administration & Support
+  { name: "Master Admins", href: "/master-admins", icon: Shield, section: "Administration", badge: "Primary", badgeColor: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
   { name: "Client Users & Roles", href: "/users", icon: ShieldAlert, section: "Administration" },
   { name: "Notifications", href: "/notifications", icon: Bell, section: "Administration", featureFlagKey: "notifications" },
   { name: "Company Settings", href: "/settings", icon: Settings, section: "Administration" },
