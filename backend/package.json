@@ -1,0 +1,21 @@
+{
+  "name": "face-attendance-convex-backend",
+  "version": "1.0.0",
+  "description": "Enterprise Multi-Tenant Face Recognition Attendance Backend on Convex with Railway Face API Integration",
+  "private": true,
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy",
+    "codegen": "convex codegen",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/backend.test.ts"
+  },
+  "dependencies": {
+    "convex": "^1.19.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.19",
+    "tsx": "^4.23.15",
+    "typescript": "^5.7.3"
+  }
+}

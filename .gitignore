@@ -1,30 +1,17 @@
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# dependencies (one install at the root)
+node_modules/
 
-# testing
-/coverage
+# Next.js / build output
+.next/
+out/
+build/
+*.tsbuildinfo
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
+# env files with secrets (backend/.env.local holds the Face API key)
+.env*.local
+.env
 
 # misc
 .DS_Store
 *.pem
-
-# debug
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# local env files
-.env*.local
-.env
-
-# typescript
-*.tsbuildinfo

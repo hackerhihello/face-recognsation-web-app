@@ -1,0 +1,232 @@
+openapi: 3.0.3
+info:
+  title: FaceAttend Enterprise Convex Backend
+  version: 1.0.0
+  description: |
+    Multi-tenant face recognition attendance REST API (Convex HTTP actions, `convex/http.ts`).
+
+    **Note:** only `x-client-id` is currently enforced. `x-api-key` is accepted by CORS but
+    not validated (`authenticateRequest` in `convex/http.ts` is defined but never called).
+servers:
+  - url: https://exuberant-wombat-191.convex.site
+    description: Production (Convex HTTP actions)
+
+tags:
+  - name: System
+  - name: Attendance
+  - name: Face
+
+paths:
+  /v1/health:
+    get:
+      tags: [System]
+      summary: Health check
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: HEALTHY }
+                  service: { type: string, example: FaceAttend Enterprise Convex Backend }
+                  environment: { type: string, example: PROD }
+                  timestamp: { type: string, format: date-time }
+
+  /v1/attendance/check-in:
+    post:
+      tags: [Attendance]
+      summary: Check in with face + GPS
+      description: Geofence check, upstream face recognition, duplicate punch suppression, late arrival calculation.
+      parameters:
+        - $ref: "#/components/parameters/ClientId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/FacePunch"
+      responses:
+        "200": { $ref: "#/components/responses/PunchSuccess" }
+        "400": { $ref: "#/components/responses/PunchFailure" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /v1/attendance/check-out:
+    post:
+      tags: [Attendance]
+      summary: Check out with face + GPS
+      description: Biometric verification, open punch resolution, activeMinutes, half-day / overtime evaluation.
+      parameters:
+        - $ref: "#/components/parameters/ClientId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/FacePunch"
+      responses:
+        "200": { $ref: "#/components/responses/PunchSuccess" }
+        "400": { $ref: "#/components/responses/PunchFailure" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /v1/face/verify:
+    post:
+      tags: [Face]
+      summary: Verify a face without writing an attendance punch
+      parameters:
+        - $ref: "#/components/parameters/ClientId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        $ref: "#/components/requestBodies/FacePunch"
+      responses:
+        "200": { $ref: "#/components/responses/PunchSuccess" }
+        "400": { $ref: "#/components/responses/PunchFailure" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /v1/face/register:
+    post:
+      tags: [Face]
+      summary: Enroll an employee's face
+      parameters:
+        - $ref: "#/components/parameters/ClientId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [employeeId, faceImageBase64]
+              properties:
+                employeeId: { type: string, example: EMP-1001 }
+                faceImageBase64: { type: string, example: "data:image/jpeg;base64,/9j/4AAQ..." }
+                consentConfirmed: { type: boolean, example: true }
+      responses:
+        "200":
+          description: Face enrolled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  requestId: { type: string, example: REQ-20261016-A1B2C3 }
+                  employeeId: { type: string, example: EMP-1001 }
+                  name: { type: string, example: Ravi Kumar }
+                  faceId: { type: string }
+                  faceEncodingId: { type: integer, example: 245 }
+                  facesDetected: { type: integer, example: 1 }
+                  processingTime: { type: number, example: 1.47 }
+                  registeredAt: { type: string, format: date-time }
+        "400": { $ref: "#/components/responses/SimpleFailure" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: Accepted but not yet enforced by the server.
+
+  parameters:
+    ClientId:
+      name: x-client-id
+      in: header
+      required: true
+      schema: { type: string }
+      description: Tenant client ID.
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema: { type: string, format: uuid }
+      description: Suppresses duplicate requests for 24h.
+
+  requestBodies:
+    FacePunch:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [faceImageBase64]
+            properties:
+              employeeId:
+                type: string
+                example: EMP-1001
+                description: Optional; omit for 1:N identification.
+              faceImageBase64: { type: string, example: "data:image/jpeg;base64,/9j/4AAQ..." }
+              latitude: { type: number, example: 17.3297 }
+              longitude: { type: number, example: 76.8343 }
+
+  responses:
+    PunchSuccess:
+      description: Face verified (and punch recorded for check-in/check-out)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/PunchSuccess" }
+    PunchFailure:
+      description: Verification failed (no face, low confidence, identity mismatch, geofence, etc.)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/PunchFailure" }
+    SimpleFailure:
+      description: Request failed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        requestId: { type: string }
+        error: { type: string, example: Missing x-client-id header }
+
+    PunchFailure:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        verified: { type: boolean, example: false }
+        requestId: { type: string }
+        error: { type: string, example: "ConfidenceBelowThreshold: Match score 61.20% below required threshold 75%." }
+        matchScore: { type: number }
+        distance: { type: number }
+        recognizedEmployeeId: { type: string }
+        antiSpoofCheck: { type: string, example: UNSUPPORTED_BY_UPSTREAM }
+
+    PunchSuccess:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        verified: { type: boolean, example: true }
+        requestId: { type: string, example: REQ-20261016-A1B2C3 }
+        actionType: { type: string, enum: [CHECK_IN, CHECK_OUT, VERIFY_ONLY] }
+        employee:
+          type: object
+          properties:
+            employeeId: { type: string }
+            name: { type: string }
+            departmentName: { type: string }
+            designation: { type: string }
+        biometrics:
+          type: object
+          properties:
+            matchScore: { type: number, example: 91.23 }
+            distance: { type: number, example: 0.18 }
+            antiSpoofCheck: { type: string, example: UNSUPPORTED_BY_UPSTREAM }
+            upstreamTotalFaces: { type: integer, example: 1 }
+        location:
+          type: object
+          properties:
+            verified: { type: boolean }
+            locationName: { type: string }
+            distanceMeters: { type: number }
+        attendance:
+          type: object
+          description: Attendance outcome (null for VERIFY_ONLY).
+          nullable: true
+          additionalProperties: true
+        timestamp: { type: string, format: date-time }
